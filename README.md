@@ -56,24 +56,28 @@ https://nodejs.org/en/download/
     ├── index.html 
     ├── Gruntfile.js
     ├── package.json
-    └── components
-        └── sass
+    └── app
+        ├── controllers
+            └── controller.js
+        ├── filters
+            └── filters.js
+        ├── services
+            └── services.js
+        ├── sass
             └── main.scss
-    ├── css
-        ├── bootstrap-theme.css
-        ├── bootstrap-theme.css.map
-        ├── bootstrap-theme.min.css
-        ├── bootstrap.css
-        ├── bootstrap.css.map
-        ├── bootstrap.min.css
-        └── main.css
-    ├── img
-    ├── js
-        ├── main.js
-        ├── plugins.js
-        └── vendor
-    ├── node_modules
-    └── dist    // includes final versions of files for deployment
+        ├── views
+            └── views.html
+        └── app.js
+    ├── assets
+        └── css
+            ├── main.css
+            └── vendors
+        ├── img
+        └── js
+            ├── app.js
+            └── vendors
+    ├── README.md
+    └── index.html
 ```
 
 ### Livereload & Live-sass-compiling
@@ -98,13 +102,13 @@ This will start a connect web server that will work in conjunction with [grunt-c
 	compass: {
 		dev: {
 			options: {
-				sassDir: 'components/sass',
-				cssDir: 'css'
+				sassDir: 'app/sass',
+				cssDir: 'assets/css'
 			}
 		}
 	},
 ```
-This will compile all sass files in `components/sass` directory into CSS files in `css/` directory.
+This will compile all sass files in `app/sass` directory into CSS files in `assets/css/` directory.
 
 #### [grunt-contrib-autoprefixer](https://github.com/nDmitry/grunt-autoprefixer)
 ```js
@@ -112,8 +116,8 @@ This will compile all sass files in `components/sass` directory into CSS files i
 		build: {
 			expand: true,
 			flatten: true,
-			src: "css/main.css",
-			dest: "css/"
+			src: "assets/css/main.css",
+			dest: "assets/css/"
 		}
 	},
 ```
@@ -124,17 +128,17 @@ This will add necessary vendor-prefixed CSS properties.
 ```js
 	watch: {
 		sass: {
-			files: ['components/sass/*.scss'],
+			files: ['app/sass/*.scss'],
 			tasks: ['compass:dev', 'autoprefixer:build']
 		},
 		livereload: {
 			options: {livereload: true},
-			files: ['css/*.css', 'js/*.js', '*.html', 'img/*'],
+			files: ['assets/css/*.css', 'app/*/*.js', '*.html', 'app/views/*.html'],
 		}
 	},
 
 ```
-This will watch any changes in sass files in `components/sass` directory. Whenever there is a change in those files, it will run the tasks listed in `tasks: []`. Then, this will reload any html file that is open on a connect web server whenever it detects a change in any stylesheet or JavaScript file to reflect the new changes.
+This will watch any changes in sass files in `app/sass` directory. Whenever there is a change in those files, it will run the tasks listed in `tasks: []`. Then, this will reload any html file that is open on a connect web server whenever it detects a change in any stylesheet or JavaScript file to reflect the new changes.
 
 #### Registering and running the watch task
 Put the follwing code in `Gruntfile.js` to register the task.
@@ -152,7 +156,7 @@ The following tasks will check HTML and JavaScript files and print out any error
 ```js
 	jshint: {
 		js_target: {
-			src: ['js/main.js']
+			src: ['app/*.js', 'app/*/*.js']
 		},
 		options: {
 			force: true
@@ -173,7 +177,7 @@ This will validate JavaScript files and indicate any errors if there are any.
 				'spec-char-escape': true,
 				'id-unique': true
 			},
-			src: ['*.html']
+			src: ['*.html', 'app/views/*html']
 		}
 	},
 ```
@@ -184,12 +188,12 @@ Register the task by putting the following code in `Gruntfile.js`.
 ```js
 grunt.registerTask('validate', ['jshint', 'htmlhint']);
 ```
-Run the following command in terminal to run `jshin` and `htmlhin` tasks.
+Run the following command in terminal to run `jshint` and `htmlhint` tasks.
 
     `grunt validate`
 
 ### Minifying and Deployment
-The following tasks will minify CSS and JavaScript files and copy all the necessary files in a new `dist` directory for final deployment.
+The following tasks will minify CSS and JavaScript files for final deployment.
 
 #### [grunt-cssc](https://github.com/mediapart/grunt-cssc)
 ```js
@@ -201,77 +205,35 @@ The following tasks will minify CSS and JavaScript files and copy all the necess
 				consolidateMediaQueries: true
 			},
 			files: {
-				'dist/css/main.css': 'css/main.css'
+				'assets/css/main.css': 'assets/css/main.css'
 			}
 		}
 	},
 ```
 This task will look for any duplicate CSS rules and consolidate them to save space.
-This will also output the result in a new directory `dist/css/`.
-
-#### [grunt-contrib-copy](https://github.com/gruntjs/grunt-contrib-copy)
-```js
-	copy: {
-		main: {
-			files: [{
-				expand: true,
-				src: '*.html',
-				dest: 'dist/'
-			},
-			{
-				expand: true,
-				src: 'css/**',
-				dest: 'dist/'
-			},
-			{
-				expand: true,
-				src: 'js/**',
-				dest: 'dist/'
-			}]
-		}
-	},
-```
-This will copy all the essential files and paste them in `dist` directory, which will eventually contain final versions of all files to be deployed.
 
 #### [grunt-contrib-cssmin](https://github.com/gruntjs/grunt-contrib-cssmin)
 ```js
 	cssmin: {
 		build: {
-			src: 'dist/css/main.css',
-			dest: 'dist/css/main.css'
+			src: 'assets/css/main.css',
+			dest: 'assets/css/main.css'
 		}
 	},
 ```
-This will take `main.css` file in `dist/css/` directory, which has been copied to this directory by `grunt-contrib-copy` task, and minify the file to reduce the file size.
+This will take `main.css` file in `assets/css` directory and minify the file to reduce the file size.
 
 #### [grunt-contrib-uglify](https://github.com/gruntjs/grunt-contrib-uglify)
 ```js
 	uglify: {
 		my_target: {
 			files: {
-				'dist/js/main.js': ['dist/js/main.js']
+				'assets/js/app.js': ['assets/js/app.js']
 			}
 		}
 	},
 ```
-This will take `main.js` file in `dist/css/` directory, which has been copied to this directory by `grunt-contrib-copy` task, and minify the file to reduce the file size.
-
-#### [grunt-contrib-imagemin](https://github.com/gruntjs/grunt-contrib-imagemin)
-```js
-	imagemin: {
-		dynamic: {
-			options: {
-				optimizationLevel: 3
-			},
-			files: [{
-				expand: true,
-				src: ['img/*.{png,jpg,jpeg,gif,ico}'],
-				dest: 'dist/'
-			}]
-		}
-	}
-```
-This will take all the image files in `img/` directory, minimize them, and place them in `dist/img/` directory for final deployment.
+This will take `app.js` file in `assets/js/` directory and minify the file to reduce the file size.
 
 #### Minifying files and getting them ready for final deployment.
 Register the task by putting the following code in `Gruntfile.js`.
@@ -283,5 +245,3 @@ grunt.registerTask('finalize', ['cssc:build', 'copy', 'cssmin:build', 'uglify', 
 Run the following command in terminal.
 
     `grunt finalize`
-
-A new directory `dist` will be created with all the necessary files for deployment in it.
