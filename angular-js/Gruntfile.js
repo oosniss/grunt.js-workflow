@@ -29,7 +29,7 @@ module.exports = function(grunt) {
         compass: {
             dev: {
                 options: {
-                    sassDir: 'app/sass/sass',
+                    sassDir: 'app/sass',
                     cssDir: 'assets/css'
                 }
             }
@@ -51,7 +51,7 @@ module.exports = function(grunt) {
             },
             livereload: {
                 options: {livereload: true},
-                files: ['assets/css/*.css', 'app/*/*.js', '*.html', 'app/views/*.html']
+                files: ['assets/css/*.css', 'app/*/*.js', 'app/*.js', '*.html', 'app/views/*.html']
             }
         },
 
@@ -108,6 +108,9 @@ module.exports = function(grunt) {
             }
         },
         uglify: {
+            options: {
+                mangle: false
+            },
             my_target: {
                 files: {
                     'assets/js/app.js': ['assets/js/app.js']
